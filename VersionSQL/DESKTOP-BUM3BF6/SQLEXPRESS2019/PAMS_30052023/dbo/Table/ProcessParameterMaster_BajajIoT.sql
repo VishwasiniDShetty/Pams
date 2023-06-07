@@ -1,0 +1,42 @@
+﻿/****** Object:  Table [dbo].[ProcessParameterMaster_BajajIoT]    Committed by VersionSQL https://www.versionsql.com ******/
+
+SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[ProcessParameterMaster_BajajIoT](
+	[IDD] [bigint] IDENTITY(1,1) NOT NULL,
+	[ParameterID] [nvarchar](50) NULL,
+	[ParameterName] [nvarchar](100) NULL,
+	[DataScreenGroup] [nvarchar](50) NULL,
+	[DisplayText] [nvarchar](50) NULL,
+	[SourceType] [nvarchar](50) NULL,
+	[DataReadAddress] [nvarchar](500) NULL,
+	[SourceDataType] [nvarchar](50) NULL,
+	[AdditionalQualifier] [nvarchar](500) NULL,
+	[PullingType] [nvarchar](50) NULL,
+	[PullingFreq] [float] NULL,
+	[Unit] [nvarchar](50) NULL,
+	[LowerValue] [nvarchar](50) NULL,
+	[HigherValue] [nvarchar](50) NULL,
+	[HighRedLimit] [nvarchar](50) NULL,
+	[LowerRedLimit] [nvarchar](50) NULL,
+	[HighGreenLimit] [nvarchar](50) NULL,
+	[LowerGreenLimt] [nvarchar](50) NULL,
+	[TemplateType] [nvarchar](50) NULL,
+	[DBDataType] [nvarchar](50) NULL,
+	[IsEnabled] [nvarchar](50) NULL,
+	[SortOrder] [int] NULL,
+	[HighYellowLimit] [nvarchar](50) NULL,
+	[LowerYellowLimit] [nvarchar](50) NULL,
+	[Divisor] [int] NULL,
+	[MobileView] [bit] NULL,
+	[AlertView] [bit] NULL,
+	[GraphView] [bit] NULL,
+	[DashboardView] [bit] NULL,
+	[MachineID] [nvarchar](50) NULL,
+	[EnabledForMobile] [bit] NULL,
+	[ComponentID] [nvarchar](50) NULL,
+	[MinRegister] [nvarchar](100) NULL,
+	[MaxRegister] [nvarchar](100) NULL,
+	[ParameterRegisterID] [nvarchar](100) NULL,
+	[ChartType] [nvarchar](50) NULL
+) ON [PRIMARY]

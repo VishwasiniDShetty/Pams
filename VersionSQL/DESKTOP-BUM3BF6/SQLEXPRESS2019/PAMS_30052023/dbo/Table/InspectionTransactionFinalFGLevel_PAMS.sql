@@ -1,0 +1,41 @@
+﻿/****** Object:  Table [dbo].[InspectionTransactionFinalFGLevel_PAMS]    Committed by VersionSQL https://www.versionsql.com ******/
+
+SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+CREATE TABLE [dbo].[InspectionTransactionFinalFGLevel_PAMS](
+	[RowID] [bigint] IDENTITY(1,1) NOT NULL,
+	[Process] [nvarchar](2000) NULL,
+	[ReportType] [nvarchar](2000) NULL,
+	[ProcessType] [nvarchar](50) NULL,
+	[ComponentID] [nvarchar](50) NULL,
+	[OperationNo] [nvarchar](50) NULL,
+	[PJCNo] [nvarchar](50) NULL,
+	[PJCYear] [nvarchar](10) NULL,
+	[SpecialCharacteristic] [nvarchar](100) NULL,
+	[CharacteristicCode] [nvarchar](2000) NULL,
+	[Specification] [nvarchar](2000) NULL,
+	[MeasuringMethod] [nvarchar](max) NULL,
+	[RevID] [int] NULL,
+	[RevNo] [nvarchar](50) NULL,
+	[RevDate] [datetime] NULL,
+	[NoOfSamples] [nvarchar](50) NULL,
+	[MeasuringInstrument] [nvarchar](max) NULL,
+	[MeasuredValue] [nvarchar](50) NULL,
+	[ControlType] [nvarchar](50) NULL,
+	[ControlValue] [nvarchar](2000) NULL,
+	[LSL] [nvarchar](50) NULL,
+	[USL] [nvarchar](50) NULL,
+	[SortOrder] [int] NULL,
+	[BatchID] [int] NULL,
+	[BatchValue] [nvarchar](2000) NULL,
+	[BatchTS] [datetime] NULL,
+	[Status] [nvarchar](500) NULL,
+	[Remarks] [nvarchar](2000) NULL,
+	[MeasuringInstrumentTran] [nvarchar](max) NULL,
+	[Date] [datetime] NULL,
+	[BatchBit] [nvarchar](max) NULL,
+	[UpdatedBy_Quality] [nvarchar](50) NULL,
+	[UpdatedTs_Quality] [datetime] NULL,
+	[UpdatedBy_MR] [nvarchar](50) NULL,
+	[UpdatedTs_MR] [datetime] NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
