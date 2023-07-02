@@ -8,11 +8,11 @@ CREATE TABLE [dbo].[PressureGuagesMaster_IDM_Pams](
 	[Make] [nvarchar](50) NULL,
 	[Location] [nvarchar](100) NULL,
 	[Instrument_Range] [nvarchar](500) NULL,
-	[Instrument_LSL] [float] NULL,
-	[Instrument_USL] [float] NULL,
+	[Instrument_LSL] [nvarchar](50) NULL,
+	[Instrument_USL] [nvarchar](50) NULL,
 	[Category] [nvarchar](50) NULL,
-	[Operating_MinValue] [float] NULL,
-	[Operating_MaxValue] [float] NULL,
+	[Operating_MinValue] [nvarchar](50) NULL,
+	[Operating_MaxValue] [nvarchar](50) NULL,
 	[Tolerance] [float] NULL,
 	[AcceptableCriteria] [float] NULL,
 	[RequiredLeastCount] [float] NULL,
@@ -21,5 +21,8 @@ CREATE TABLE [dbo].[PressureGuagesMaster_IDM_Pams](
 	[ErrorObserved] [nvarchar](50) NULL,
 	[Status] [nvarchar](50) NULL,
 	[PartID] [nvarchar](50) NULL,
-	[PutToUseOn] [datetime] NULL
+	[PutToUseOn] [datetime] NULL,
+	[ItemCategory] [nvarchar](50) NULL,
+	[IDMType] [nvarchar](50) NULL,
+	[IDMItemType] [nvarchar](50) NULL
 ) ON [PRIMARY]

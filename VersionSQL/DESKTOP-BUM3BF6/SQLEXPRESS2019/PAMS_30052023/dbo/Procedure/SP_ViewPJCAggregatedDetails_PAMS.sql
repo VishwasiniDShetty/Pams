@@ -3,7 +3,7 @@
 /*
 SP_ViewPJCAggregatedDetails_PAMS @PartID=N'M7070120',@PJCNo=N'1',@PJCYear=N'2023',@OperationNo=N'50',@Date=N'2023-02-07 00:00:00.000',@Shift=N'A', @Param=N'View'
 
-SP_ViewPJCAggregatedDetails_PAMS @PartID=N'M7070120',@PJCNo=N'1',@PJCYear=N'2023',@MJCNo=N'RM/GRN/1/2023-24',@Param=N'PJCLevelView'
+SP_ViewPJCAggregatedDetails_PAMS @PartID=N'G2081420',@PJCNo=N'',@PJCYear=N'2023',@MJCNo=N'RM/GRN/2/2023-24',@Param=N'PJCLevelView'
 
 exec [SP_ViewPJCAggregatedDetails_PAMS] @fromdate=N'2023-05-01 00:00:00.000',@Todate=N'2023-05-11 00:00:00.000',@MachineID=N'',@Shift=N'''A'',''b'',''c''',@Param=N'View'
 
@@ -14,7 +14,7 @@ CREATE procedure [dbo].[SP_ViewPJCAggregatedDetails_PAMS]
 @MachineID NVARCHAR(MAX)='',
 @Shift nvarchar(500)='',
 @PartID NVARCHAR(50)='',
-@MJCNo nvarchar(50)='',
+@MJCNo nvarchar(max)='',
 @PJCNo nvarchar(50)='',
 @PJCYear nvarchar(50)='',
 @OperationNo nvarchar(50)='',
@@ -43,7 +43,8 @@ CREATE procedure [dbo].[SP_ViewPJCAggregatedDetails_PAMS]
 @ReworkDate datetime='',
 @ReworkShift nvarchar(50)='',
 @ReworkOperator nvarchar(50)='',
-@ReworkMachine nvarchar(50)=''
+@ReworkMachine nvarchar(50)='',
+@DataType nvarchar(50)=''
 as
 begin
 create table #Temp
@@ -92,7 +93,9 @@ AcceptedQty float default 0,
 PJCStatus nvarchar(50),
 QualityLevelBatchCount int,
 InspectionLevelBatchCount int,
-FinalInspectionStatus nvarchar(50)
+FinalInspectionStatus nvarchar(50),
+QtyMovedToFinalInspection nvarchar(50),
+PendingQtyForFinalInspection nvarchar(50)
 )
 select @Process=''
 select  @Process=(select distinct process from componentoperationpricing where componentid=@PartID and operationno=@OperationNo and machineid=@MachineID)
@@ -124,7 +127,10 @@ end
 if @Param='PJCLevelView'
 begin
 	insert into #PJCHeaderDetails (partid,mjcno,PJCNo,PJCDate,PjcYear,IssuedQty,PJCStatus)
-	select PartID,MJCNo,PJCNo,PJCDate, pjcyear,IssuedQty,PJCStatus from ProcessJobCardHeaderCreation_PAMS where PJCYear=@PJCYear and PartID=@PartId and MJCNo=@MJCNo
+	--select PartID,MJCNo,PJCNo,PJCDate, pjcyear,IssuedQty,PJCStatus from ProcessJobCardHeaderCreation_PAMS where PJCYear=@PJCYear and PartID=@PartId and MJCNo=@MJCNo
+		select PartID,MJCNo,PJCNo,PJCDate, pjcyear,IssuedQty,PJCStatus from ProcessJobCardHeaderCreation_PAMS where PJCYear=@PJCYear and PartID=@PartId
+		and MJCNo in (select item from SplitString(@mjcno,','))
+
 
 	update #PJCHeaderDetails set RejQty=isnull(t1.RejectionQty,0)
 	from
@@ -137,7 +143,7 @@ begin
 	from
 	(
 	select distinct PartID,MjcNo,PJCNo,pjcyear,sum(Prod_Qty) as Prod_Qty from PJCProductionEditedDetails_PAMS
-	--where FinishedOpn='1'
+	where FinishedOpn='1'
 	group by PartID,MjcNo,PJCNo,pjcyear
 	)t1 inner join #PJCHeaderDetails t2 on t1.PartID=t2.partid and t1.MjcNo=t2.mjcno and t1.PJCNo=t2.PJCNo and ('20'+t1.PJCYear)=t2.PjcYear
 
@@ -185,7 +191,27 @@ begin
         ,1,1,'') sts from #PJCHeaderDetails l3 
 	) t1 inner join #PJCHeaderDetails on #PJCHeaderDetails.partid=t1.partid and #PJCHeaderDetails.PJCNo=t1.PJCNo and #PJCHeaderDetails.PjcYear=t1.PjcYear
 
-	select distinct * from  #PJCHeaderDetails
+	update #PJCHeaderDetails set QtyMovedToFinalInspection=isnull(t1.QtyMovedToFinalInspection,'')
+	from
+	(
+		select distinct  PartID,MjcNo,PJCNo,pjcyear,sum(AcceptedQty) as QtyMovedToFinalInspection from InspectionReadyDetailsSave_Pams
+		group by PartID,MjcNo,PJCNo,pjcyear
+	) t1 inner join #PJCHeaderDetails t2 on t1.PartID=t2.partid and t1.MJCNo=t2.mjcno and t1.PJCNo=t2.PJCNo and ('20'+t1.PJCYear)=t2.PjcYear
+
+
+		update #PJCHeaderDetails set PendingQtyForFinalInspection=isnull(t1.PendingQtyForInspection,'')
+	from
+	(
+		select distinct  PartID,MjcNo,PJCNo,pjcyear,sum(PendingQtyForInspection) as PendingQtyForInspection from PJCProductionEditedDetails_PAMS
+		group by PartID,MjcNo,PJCNo,pjcyear
+	) t1 inner join #PJCHeaderDetails t2 on t1.PartID=t2.partid and t1.MJCNo=t2.mjcno and t1.PJCNo=t2.PJCNo and ('20'+t1.PJCYear)=t2.PjcYear
+
+
+
+	select distinct partid ,mjcno ,PJCNo,PJCDate ,PjcYear ,IssuedQty  ,isnull(ProducedQty,0) as ProducedQty,isnull(RejQty,0) as RejQty ,isnull(AcceptedQty,0) as  AcceptedQty,
+	PJCStatus,QualityLevelBatchCount ,InspectionLevelBatchCount ,FinalInspectionStatus,isnull(QtyMovedToFinalInspection,0) as  QtyMovedToFinalInspection,
+	isnull(PendingQtyForFinalInspection,0) as PendingQtyForFinalInspection
+	from  #PJCHeaderDetails
 
 end
 
@@ -343,8 +369,8 @@ begin
 		insert into PJCRejectionDetails_PAMS(date,Shift,machineid,PartID,MjcNo,PJCNo,PJCYear,OperationNo,process,RejectionQty,RejectionReason,UpdatedBy,UpdatedTS,Rework_Rej_Bit)
 		values(@Date,@shift,@MachineID,@PartID,@MJCNo,@PJCNo,@PJCYear,@OperationNo,@Process,@RejQty,@RejectionReason,@UpdatedBy,GETDATE(),@Rework_Rej_Bit)
 
-		insert into PJCProductionEditedDetails_PAMS(Date,PartID,machineid,OperationNo,PJCYear,PJCNo,Prod_Qty,ReworkQty,RejQty,AcceptedQty,QualityIncharge,Quality_TS,FinishedOpn,shift,MJCNo,QualityStatus,process,DummyCycle)
-		values(@Date,@PartID,@MachineID,@OperationNo,@PJCYear,@PJCNo,@Prod_Qty,@ReworkQty,@RejQty,@AcceptedQty,@QualityIncharge,getdate(),@FinishedOpn,@shift,@MJCNo,@QualityStatus,@Process,@DummyCycle)
+		insert into PJCProductionEditedDetails_PAMS(Date,PartID,machineid,OperationNo,PJCYear,PJCNo,Prod_Qty,ReworkQty,RejQty,AcceptedQty,QualityIncharge,Quality_TS,FinishedOpn,shift,MJCNo,QualityStatus,process,DummyCycle,DataType)
+		values(@Date,@PartID,@MachineID,@OperationNo,@PJCYear,@PJCNo,@Prod_Qty,@ReworkQty,@RejQty,@AcceptedQty,@QualityIncharge,getdate(),@FinishedOpn,@shift,@MJCNo,@QualityStatus,@Process,@DummyCycle,@DataType)
 	end
 	else
 	begin
@@ -360,8 +386,8 @@ begin
 	if not exists(select * from PJCProductionEditedDetails_PAMS where Date=@Date and PJCYear=@PJCYear and Machineid=@MachineID and PartID=@PartID and OperationNo=@OperationNo and PJCNo=@PJCNo and shift=@shift and MJCNo=@MJCNo)
 	begin
 
-		insert into PJCProductionEditedDetails_PAMS(Date,PartID,Machineid,OperationNo,PJCYear,PJCNo,Prod_Qty,ReworkQty,RejQty,AcceptedQty,LineIncharge,LineIncharge_TS,FinishedOpn,shift,PendingQtyForInspection,MJCNo,LineInchargeStatus,process,DummyCycle)
-		values(@Date,@PartID,@MachineID, @OperationNo,@PJCYear,@PJCNo,@Prod_Qty,@ReworkQty,@RejQty,@AcceptedQty,@LineIncharge,getdate(),@FinishedOpn,@shift,@PendingQtyForInspection,@MJCNo,@LineInchargeStatus,@Process,@DummyCycle)
+		insert into PJCProductionEditedDetails_PAMS(Date,PartID,Machineid,OperationNo,PJCYear,PJCNo,Prod_Qty,ReworkQty,RejQty,AcceptedQty,LineIncharge,LineIncharge_TS,FinishedOpn,shift,PendingQtyForInspection,MJCNo,LineInchargeStatus,process,DummyCycle,DataType)
+		values(@Date,@PartID,@MachineID, @OperationNo,@PJCYear,@PJCNo,@Prod_Qty,@ReworkQty,@RejQty,@AcceptedQty,@LineIncharge,getdate(),@FinishedOpn,@shift,@PendingQtyForInspection,@MJCNo,@LineInchargeStatus,@Process,@DummyCycle,@DataType)
 	end
 	else
 	begin

@@ -48,7 +48,7 @@ OperationNo nvarchar(50),
 MJCNo nvarchar(50),
 PJCNo nvarchar(50),
 PJCYear nvarchar(50),
-ProdAcceptedQty float,
+ProdAcceptedQty float DEFAULT 0,
 MarkedForReworkQty float,
 ReworkOk float,
 RejQty float,
@@ -58,11 +58,11 @@ UpdatedTSProduction datetime,
 UpdatedByQuality nvarchar(50),
 UpdatedTSQuality datetime,
 BatchBit int,
-SentQtyForInspection float,
+SentQtyForInspection float DEFAULT 0,
 AcceptedQtyFromInspection float,
 PendingQtyForInspection float,
 PJCStatus nvarchar(50),
-ConfirmedReceiveQty float,
+ConfirmedReceiveQty float DEFAULT 0,
 PJCAutoID bigint,
 OfferedToFGQty float,
 InspectionSaveBit int
@@ -95,19 +95,19 @@ Status nvarchar(50)
 		end
 		else
 		begin
-			update InspectionReadyDetailsSave_Pams set UpdatedByQuality=@UpdatedByQuality,UpdatedTSQuality=@UpdatedTSQuality,AcptQtyForInspection=@AcptQtyForInspection,PendingQtyForInspection=@PendingQtyForInspection,AcceptedQtyFromInspection=@AcceptedQtyFromInspection --,ConfirmedReceiveQty=@ConfirmedReceiveQty
+			update InspectionReadyDetailsSave_Pams set UpdatedByQuality=@UpdatedByQuality,UpdatedTSQuality=@UpdatedTSQuality,ConfirmedReceiveQty=@ConfirmedReceiveQty,PendingQtyForInspection=@PendingQtyForInspection, AcptQtyForInspection=@AcptQtyForInspection,AcceptedQtyFromInspection=@AcceptedQtyFromInspection --,ConfirmedReceiveQty=@ConfirmedReceiveQty
 			 WHERE UpdatedTSProduction=@UpdatedTSProduction AND  PartID=@PartID AND OperationNo=@OperationNo and PJCNo=@PJCNo and PJCYear=@PJCYear and BatchBit=@BatchBit and MJCNo=@MJCNo
 		end
 	end
 
-		if @Param='ConfirmReceiveQty'
-	begin
-		if exists(select * from InspectionReadyDetailsSave_Pams WHERE UpdatedTSProduction=@UpdatedTSProduction AND  PartID=@PartID AND OperationNo=@OperationNo and PJCNo=@PJCNo and PJCYear=@PJCYear and BatchBit=@BatchBit)
-		begin
-			update InspectionReadyDetailsSave_Pams set UpdatedByQuality=@UpdatedByQuality,UpdatedTSQuality=@UpdatedTSQuality,ConfirmedReceiveQty=@ConfirmedReceiveQty,PendingQtyForInspection=@PendingQtyForInspection
-			 WHERE UpdatedTSProduction=@UpdatedTSProduction AND  PartID=@PartID AND OperationNo=@OperationNo and PJCNo=@PJCNo and PJCYear=@PJCYear and BatchBit=@BatchBit and MJCNo=@MJCNo
-		end
-	end
+	--	if @Param='ConfirmReceiveQty'
+	--begin
+	--	if exists(select * from InspectionReadyDetailsSave_Pams WHERE UpdatedTSProduction=@UpdatedTSProduction AND  PartID=@PartID AND OperationNo=@OperationNo and PJCNo=@PJCNo and PJCYear=@PJCYear and BatchBit=@BatchBit)
+	--	begin
+	--		update InspectionReadyDetailsSave_Pams set UpdatedByQuality=@UpdatedByQuality,UpdatedTSQuality=@UpdatedTSQuality,ConfirmedReceiveQty=@ConfirmedReceiveQty,PendingQtyForInspection=@PendingQtyForInspection
+	--		 WHERE UpdatedTSProduction=@UpdatedTSProduction AND  PartID=@PartID AND OperationNo=@OperationNo and PJCNo=@PJCNo and PJCYear=@PJCYear and BatchBit=@BatchBit and MJCNo=@MJCNo
+	--	end
+	--end
 
 		if @Param='UpdateOfferedToFG'
 	begin
@@ -178,8 +178,21 @@ Status nvarchar(50)
 		-- select distinct  partid,OperationNo,MJCNo,PJCNo,PJCYear,UpdatedTSProduction,BatchBit,(isnull(SentQtyForInspection,0)-(isnull(MarkedForReworkQty,0)-isnull(ReworkOk,0))-isnull(RejQty,0)) as AcceptedQtyFromInspection from #QualityView
 		--) t1 inner join #QualityView t2 on t1.partid=t2.partid  and t1.OperationNo= t2.OperationNo and t1.MJCNo=t2.MJCNo and t1.PJCNo=t2.PJCNo  and t1.PJCYear=t2.PJCYear and t1.UpdatedTSProduction=t2.UpdatedTSProduction  and t1.BatchBit=t2.BatchBit
 
+		select  distinct AutoID,PartID,OperationNo,MJCNo,PJCNo ,PJCYear,ProdAcceptedQty ,MarkedForReworkQty ,ReworkOk ,
+		RejQty ,AcceptedQty ,UpdatedByProduction ,UpdatedTSProduction ,UpdatedByQuality,UpdatedTSQuality,BatchBit,
+		 ISNULL(SentQtyForInspection,0) AS SentQtyForInspection,
+		AcceptedQtyFromInspection ,PendingQtyForInspection ,PJCStatus ,
+		ISNULL(ConfirmedReceiveQty,0) AS ConfirmedReceiveQty,PJCAutoID,
+		OfferedToFGQty,InspectionSaveBit
+		from #QualityView order by UpdatedTSProduction asc,BatchBit,PartID,PJCNo
 
-		select  distinct * from #QualityView order by UpdatedTSProduction asc,BatchBit,PartID,PJCNo
+		--select  distinct AutoID,PartID,OperationNo,MJCNo,PJCNo ,PJCYear,ProdAcceptedQty ,MarkedForReworkQty ,ReworkOk ,
+		--RejQty ,AcceptedQty ,UpdatedByProduction ,UpdatedTSProduction ,UpdatedByQuality,UpdatedTSQuality,BatchBit,
+		--CASE WHEN ISNULL(SentQtyForInspection,0)=0 THEN ProdAcceptedQty ELSE SentQtyForInspection END AS SentQtyForInspection,
+		--AcceptedQtyFromInspection ,PendingQtyForInspection ,PJCStatus ,
+		--CASE WHEN ISNULL(ConfirmedReceiveQty,0)=0 THEN ProdAcceptedQty ELSE ConfirmedReceiveQty END ConfirmedReceiveQty,PJCAutoID,
+		--OfferedToFGQty,InspectionSaveBit
+		--from #QualityView order by UpdatedTSProduction asc,BatchBit,PartID,PJCNo
 
 		insert into #SentForInspection(PartID,PJCNo,PJCYear,OperationNo,MJCNo,SavedBatchBits)
 		select distinct q1.partid,q1.pjcno,q1.PJCYear,q1.OperationNo,q1.MJCNo,q2.BatchBit from #QualityView q1 left join (select distinct ComponentID,PJCNo,PJCYear,BatchBit from InspectionTransactionFinalFGLevel_PAMS)q2

@@ -8,10 +8,19 @@ CREATE TABLE [dbo].[ARGMPG_APGMRG_IDM_Pams](
 	[Make] [nvarchar](50) NULL,
 	[Stage] [nvarchar](50) NULL,
 	[GuageSize] [nvarchar](100) NULL,
-	[GuageSizeMin] [float] NULL,
-	[GuageSizeMax] [float] NULL,
+	[GuageSizeMin] [nvarchar](50) NULL,
+	[GuageSizeMax] [nvarchar](50) NULL,
 	[CalibrationFreq] [nvarchar](50) NULL,
 	[PartID] [nvarchar](50) NULL,
 	[PutToUseOn] [datetime] NULL,
-	[Remarks] [nvarchar](max) NULL
+	[Remarks] [nvarchar](max) NULL,
+	[ItemCategory] [nvarchar](50) NULL,
+	[IDMType] [nvarchar](50) NULL,
+	[IDMItemType] [nvarchar](50) NULL,
+	[Location] [nvarchar](max) NULL,
+	[SetNo] [nvarchar](50) NULL,
+	[MinimumOrderQty] [float] NULL,
+	[ShelfLife] [float] NULL,
+	[Uom] [nvarchar](50) NULL,
+	[Type] [nvarchar](50) NULL
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]

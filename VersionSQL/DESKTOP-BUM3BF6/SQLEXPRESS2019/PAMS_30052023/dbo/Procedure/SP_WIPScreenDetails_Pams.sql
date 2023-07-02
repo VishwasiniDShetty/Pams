@@ -296,7 +296,9 @@ group by partid
 ) t1 inner join #WIPDetails t2 on t1.PartID=t2.PartID and t2.Process='RM'
 
 
-SELECT MaterialID,PartID,PartDescription,Process,SortOrder,DCType,Customer ,RMQty,Qty_Sum, DCIssuedQty ,DCReceivedQty ,Qty,RejectionQty ,ReworkQty ,StoreQty,ReadyToIssueQty,InwardInspectionTotal  FROM #WIPDetails
+SELECT MaterialID,PartID,PartDescription,Process,SortOrder,DCType,Customer ,RMQty,Qty_Sum, DCIssuedQty ,DCReceivedQty ,
+case when isnull(Qty,0)>0 then qty else 0 end as Qty,RejectionQty ,ReworkQty ,
+case when isnull(StoreQty,0)>0 then StoreQty else 0 end as StoreQty,ReadyToIssueQty,InwardInspectionTotal  FROM #WIPDetails
 order by partid,sortorder
 
 end

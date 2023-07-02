@@ -20,7 +20,10 @@ CREATE TABLE [dbo].[RequestDetails_Pams](
 	[Remarks] [nvarchar](2000) NULL,
 	[UOM] [nvarchar](50) NULL,
 	[HoldRemarks] [nvarchar](2000) NULL,
-	[ClosedRemarks] [nvarchar](2000) NULL
+	[ClosedRemarks] [nvarchar](2000) NULL,
+	[MJCNo] [nvarchar](50) NULL,
+	[PJCNo] [nvarchar](50) NULL,
+	[ReworkQty] [nvarchar](50) NULL
 ) ON [PRIMARY]
 
 ALTER TABLE [dbo].[RequestDetails_Pams] ADD  DEFAULT (getdate()) FOR [RequestedTS]

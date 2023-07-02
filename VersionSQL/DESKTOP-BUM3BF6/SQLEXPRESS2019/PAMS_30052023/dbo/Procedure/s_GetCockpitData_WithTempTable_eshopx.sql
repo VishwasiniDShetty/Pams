@@ -2357,7 +2357,9 @@ update #CockPitData set MachineLiveStatusColor=T.Colorcode from
 )T inner join #CockPitData on T.Status=#CockPitData.MachineLiveStatus
 ---------------------------------- Added to handle Machine Status for Focas Machines ---------------------------------- 
 
+
 --ER0417 Added From here
+
 If @MarkedForRework='Y'
 BEGIN
 
@@ -2644,7 +2646,8 @@ Update #CockpitData Set Lastcycletime = T1.LastCycle  from
 ---------------------------------------------ER0455 Logic For Ae Prediction Metso and ER0466 Logic Revised-------------------------------------------------------------  
 Declare @PredictionForLongerCycles as nvarchar(50)  
 select @PredictionForLongerCycles = ISNULL(Valueintext,'N') from CockpitDefaults where Parameter='PredictionForLongerCycles'  
-  
+
+
 If isnull(@PredictionForLongerCycles,'N')='Y'  
 Begin  
 Create table #AE  
@@ -2666,8 +2669,11 @@ id bigint,
 datatype nvarchar(50)  
 )  
   
+
   
 Delete From #machineRunningStatus  
+
+
   
 Set @CurrTime = case when @CurrTime>@EndTime then @EndTime else @CurrTime end  
   
@@ -3006,6 +3012,9 @@ BEGIN
   
 END  
 
+  
+    
+
 UPDATE #CockpitData  
 SET 
 --TotalTime = DateDiff(second, @StartTime, case when @endtime<@CurrTime then @endtime else @currtime end), --SV
@@ -3035,6 +3044,8 @@ SET
 UPDATE #CockpitData  
 SET 
 TotalTime = DateDiff(second, @StartTime, @endtime) Where ISNULL(TotalTime,0)=0
+
+
 
 
 If (SELECT ValueInText From CockpitDefaults Where Parameter ='DisplayTTFormat')='Display TotalTime - Less PDT' 
@@ -3085,20 +3096,60 @@ End
 --------------------------------------------Logic For Ae Prediction Metso--------------------------------------------------------  
   
 --------------------------------------------- --ER0455 Logic For Metso -------------------------------------------------------------------------  
-  
+
+
 --Query to get Machinewise Spindle records for each CycleStart and CycleEnd  
 Delete From #machineRunningStatus  
+
+create table #rawdata
+(
+slno nvarchar(50),
+sttime datetime,
+datatype nvarchar(50),
+mc nvarchar(50),
+comp nvarchar(50),
+opn nvarchar(50)
+)
+
+create table #Running
+(
+mc nvarchar(50),
+slno nvarchar(50)
+)
+
+
+insert into #rawdata(slno,sttime,datatype,mc,comp,opn)
+select SlNo,Sttime,DataType,MC,comp,opn from rawdata
+inner join Autodata_maxtime A on rawdata.mc=A.machineid  
+where (Rawdata.sttime>A.Endtime and Rawdata.sttime<@currtime) and rawdata.datatype=11   
+
+
+
+--insert into #Running(mc,slno)
+--select mc,max(slno) as slno from rawdata WITH (NOLOCK)   
+--inner join Autodata_maxtime A on rawdata.mc=A.machineid where (Rawdata.sttime>A.Endtime and Rawdata.sttime<@currtime) and rawdata.datatype=11 group by mc
   
+
+--  Insert into #machineRunningStatus(MachineID,MachineInterface,sttime,ndtime,DataType,Downtime,comp,Opn)  
+--select fd.MachineID,fd.MachineInterface,case when sttime<@StartTime then @StartTime else sttime end,@currtime,datatype,datediff(second,sttime,@currtime),comp,opn from rawdata  
+--inner join (select mc,slno as slno from #Running) t1 
+--on t1.mc=rawdata.mc and t1.slno=rawdata.slno  
+--inner join Autodata_maxtime A on rawdata.mc=A.machineid  
+--right outer join (select distinct machineid,MachineInterface from #CockpitData) fd on fd.MachineInterface = rawdata.mc  
+--where (Rawdata.sttime>A.Endtime and Rawdata.sttime<@currtime) and rawdata.datatype=11   
+--order by rawdata.mc   
+
 ---Query to get Machinewise Last Record from Rawdata where Datatype in 1,2,11  
+
 Insert into #machineRunningStatus(MachineID,MachineInterface,sttime,ndtime,DataType,Downtime,comp,Opn)  
-select fd.MachineID,fd.MachineInterface,case when sttime<@StartTime then @StartTime else sttime end,@currtime,datatype,datediff(second,sttime,@currtime),comp,opn from rawdata  
+select fd.MachineID,fd.MachineInterface,case when sttime<@StartTime then @StartTime else sttime end,@currtime,datatype,datediff(second,sttime,@currtime),comp,opn from #rawdata  
 inner join (select mc,max(slno) as slno from rawdata WITH (NOLOCK)   
 inner join Autodata_maxtime A on rawdata.mc=A.machineid where (Rawdata.sttime>A.Endtime and Rawdata.sttime<@currtime) and rawdata.datatype=11 group by mc) t1 
-on t1.mc=rawdata.mc and t1.slno=rawdata.slno  
-inner join Autodata_maxtime A on rawdata.mc=A.machineid  
-right outer join (select distinct machineid,MachineInterface from #CockpitData) fd on fd.MachineInterface = rawdata.mc  
-where (Rawdata.sttime>A.Endtime and Rawdata.sttime<@currtime) and rawdata.datatype=11   
-order by rawdata.mc   
+on t1.mc=#rawdata.mc and t1.slno=#rawdata.slno  
+right outer join (select distinct machineid,MachineInterface from #CockpitData) fd on fd.MachineInterface = #rawdata.mc  
+order by #rawdata.mc   
+
+
 
 
 --Query to get Machinewise Spindle records for each CycleStart and CycleEnd  

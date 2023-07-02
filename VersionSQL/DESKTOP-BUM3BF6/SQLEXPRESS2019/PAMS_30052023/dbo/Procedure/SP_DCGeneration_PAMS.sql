@@ -48,7 +48,10 @@ CREATE procedure [dbo].[SP_DCGeneration_PAMS]
 @NewQty_Numbers float=0,
 @NewPJCNo nvarchar(50)='',
 @NewPJCYear nvarchar(50)='',
-@UserID NVARCHAR(50)=''
+@UserID NVARCHAR(50)='',
+@WithoutOperationQty_KG FLOAT=0,
+@WithoutOperationQty_Numbers float=0,
+@WithoutOperationQty_UOM nvarchar(50)=''
 as
 begin
 	declare @StrVendor nvarchar(2000)
@@ -96,7 +99,8 @@ begin
 	PJCYear nvarchar(50),
 	employee nvarchar(50),
 	RequestedBy nvarchar(50),
-	MaterialRequestNo nvarchar(50)
+	MaterialRequestNo nvarchar(50),
+	MaterialType nvarchar(50)
 	)
 
 	CREATE TABLE #GRNPendingQty
@@ -258,15 +262,15 @@ begin
 	begin
 		select @strsql=''
 		select @strsql=@strsql+'insert into #Temp( Vendor,GRNNo,MaterialID,PartID,process,Qty_KG,Qty_Numbers,HSNCode,uom,bin,Value,
-		Pams_DCNo,DCDate,Pams_DCID,UpdatedBy,UpdatedTS,DCType,JobCardType,MJCNo,PJCNo,employee,MaterialRequestNo,RequestedBy,PJCYear) '
+		Pams_DCNo,DCDate,Pams_DCID,UpdatedBy,UpdatedTS,DCType,JobCardType,MJCNo,PJCNo,employee,MaterialRequestNo,RequestedBy,PJCYear,MaterialType) '
 		select @strsql=@strsql+'select distinct d1.Vendor,d1.GRNNo,d1.MaterialID,d1.PartID,d1.process,d1.Qty_KG,d1.Qty_Numbers,r1.HSNCode,d1.uom,d1.bin,d1.Value,
-		d1.Pams_DCNo,d1.DCDate,d1.Pams_DCID,d1.UpdatedBy,d1.UpdatedTS,d1.DCType,d1.JobCardType,d1.MJCNo,d1.PJCNo,d1.employee,d1.MaterialRequestNo,d1.RequestedBy,d1.PJCYear from DCNoGeneration_PAMS d1  left join RawMaterialDetails_PAMS r1 on d1.MaterialID=r1.MaterialID where 1=1 '
+		d1.Pams_DCNo,d1.DCDate,d1.Pams_DCID,d1.UpdatedBy,d1.UpdatedTS,d1.DCType,d1.JobCardType,d1.MJCNo,d1.PJCNo,d1.employee,d1.MaterialRequestNo,d1.RequestedBy,d1.PJCYear,d1.MaterialType from DCNoGeneration_PAMS d1  left join RawMaterialDetails_PAMS r1 on d1.MaterialID=r1.MaterialID where 1=1 '
 		select @strsql=@strsql+@StrVendor+@StrGrnNo+@StrMaterialID+@StrPartID+@StrProcess+@strPamsDCNo
 		print(@strsql)
 		exec(@strsql)
 
 		select  Vendor,GRNNo,MaterialID, PartID ,process,Qty_KG, Qty_Numbers,HSNCode,uom ,bin ,Value,Pams_DCNo,DCDate ,Pams_DCID ,UpdatedBy,UpdatedTS ,
-		DCType,JobCardType,MJCNo,PJCNo,employee,MaterialRequestNo,RequestedBy,PJCYear from #Temp	
+		DCType,JobCardType,MJCNo,PJCNo,employee,MaterialRequestNo,RequestedBy,PJCYear,MaterialType from #Temp	
 	end
 
 	IF @Param='DCHistoryView'
@@ -280,15 +284,15 @@ begin
 
 		select @strsql=''
 		select @strsql=@strsql+'insert into #Temp( Vendor,GRNNo,MaterialID,PartID,process,Qty_KG,Qty_Numbers,HSNCode,uom,bin,Value,
-		Pams_DCNo,DCDate,Pams_DCID,UpdatedBy,UpdatedTS,dcstatus,DCType,JobCardType,MJCNo,PJCNo,MaterialRequestNo,RequestedBy,PJCYear) '
+		Pams_DCNo,DCDate,Pams_DCID,UpdatedBy,UpdatedTS,dcstatus,DCType,JobCardType,MJCNo,PJCNo,MaterialRequestNo,RequestedBy,PJCYear,MaterialType) '
 		select @strsql=@strsql+'select distinct d1.Vendor,d1.GRNNo,d1.MaterialID,d1.PartID,d1.process,d1.Qty_KG,d1.Qty_Numbers,r1.HSNCode,d1.uom,d1.bin,d1.Value,
-		d1.Pams_DCNo,d1.DCDate,d1.Pams_DCID,d1.UpdatedBy,d1.UpdatedTS,d1.dcstatus,d1.DCType,d1.JobCardType,d1.MJCNo,d1.PJCNo,d1.MaterialRequestNo,d1.RequestedBy,d1.PJCYear from DCNoGeneration_PAMS d1  left join RawMaterialDetails_PAMS r1 on d1.MaterialID=r1.MaterialID 
+		d1.Pams_DCNo,d1.DCDate,d1.Pams_DCID,d1.UpdatedBy,d1.UpdatedTS,d1.dcstatus,d1.DCType,d1.JobCardType,d1.MJCNo,d1.PJCNo,d1.MaterialRequestNo,d1.RequestedBy,d1.PJCYear,d1.MaterialType from DCNoGeneration_PAMS d1  left join RawMaterialDetails_PAMS r1 on d1.MaterialID=r1.MaterialID 
 		where 1=1 and dcstatus=''DC No. generated and confirmed'' '
 		select @strsql=@strsql+@StrVendor+@StrGrnNo+@StrMaterialID+@StrPartID+@StrProcess
 		print(@strsql)
 		exec(@strsql)
 
-		select  Vendor,GRNNo,MaterialID, PartID ,process,Qty_KG, Qty_Numbers,HSNCode,uom ,bin ,Value,Pams_DCNo,DCDate ,Pams_DCID ,UpdatedBy,UpdatedTS,DCType,JobCardType,MJCNo,PJCNo,MaterialRequestNo,RequestedBy,PJCYear from #Temp
+		select  Vendor,GRNNo,MaterialID, PartID ,process,Qty_KG, Qty_Numbers,HSNCode,uom ,bin ,Value,Pams_DCNo,DCDate ,Pams_DCID ,UpdatedBy,UpdatedTS,DCType,JobCardType,MJCNo,PJCNo,MaterialRequestNo,RequestedBy,PJCYear,MaterialType from #Temp
 
 	end
 
@@ -301,12 +305,12 @@ begin
 		--begin
 		--	insert into DCNoGenerationTemp_PAMS(DocumentType,Pams_DCNo,JobCardType,DCType,UpdatedBy,UpdatedTS)values(@DocumentType,@Pams_DCNo,@JobCardType,@DCType,@UpdatedBy,@UpdatedTS)
 		--end
-			INSERT INTO DCNoGeneration_PAMS(Vendor,GRNNo,MaterialID,PartID,process,Qty_KG,Qty_Numbers,HSNCode,uom,bin,Value,UpdatedBy,UpdatedTS,Pams_DCNo,DCDate,Pams_DCID,dcstatus,JobCardType,DCType,MJCNo,PJCNo,Employee,MaterialRequestNo,RequestedBy,PJCYear)
-			VALUES(@Vendor,@Grnno,@MaterialID,@partid,@Process,@Qty_KG,@Qty_Numbers,@HSNCode,@uom,@bin,@Value,@UpdatedBy,@UpdatedTS,@Pams_DCNo,@DCDate,@Pams_DCID,case when isnull(@DCStatus,'')='' then 'DCIssued' else @DCStatus end,@JobCardType,@DCType,@MJCNo,@PJCNo,@Employee,@MaterialRequestNo,@RequestedBy,@PJCYear)
+			INSERT INTO DCNoGeneration_PAMS(Vendor,GRNNo,MaterialID,PartID,process,Qty_KG,Qty_Numbers,HSNCode,uom,bin,Value,UpdatedBy,UpdatedTS,Pams_DCNo,DCDate,Pams_DCID,dcstatus,JobCardType,DCType,MJCNo,PJCNo,Employee,MaterialRequestNo,RequestedBy,PJCYear,MaterialType)
+			VALUES(@Vendor,@Grnno,@MaterialID,@partid,@Process,@Qty_KG,@Qty_Numbers,@HSNCode,@uom,@bin,@Value,@UpdatedBy,@UpdatedTS,@Pams_DCNo,@DCDate,@Pams_DCID,case when isnull(@DCStatus,'')='' then 'DCIssued' else @DCStatus end,@JobCardType,@DCType,@MJCNo,@PJCNo,@Employee,@MaterialRequestNo,@RequestedBy,@PJCYear,@MaterialType)
 		end
 		else
 		begin
-			update DCNoGeneration_PAMS set Qty_KG=@Qty_KG,Qty_Numbers=@Qty_Numbers,UpdatedBy=@UpdatedBy,UpdatedTS=@UpdatedTS,bin=@Bin,Value=@Value,RequestedBy=@RequestedBy,MaterialRequestNo=@MaterialRequestNo
+			update DCNoGeneration_PAMS set Qty_KG=@Qty_KG,Qty_Numbers=@Qty_Numbers,UpdatedBy=@UpdatedBy,UpdatedTS=@UpdatedTS,bin=@Bin,Value=@Value,RequestedBy=@RequestedBy,MaterialRequestNo=@MaterialRequestNo,MaterialType=@MaterialType
 			where vendor=@Vendor and GRNNo=@Grnno and MaterialID=@MaterialID and PartID=@partid and process=@Process AND Pams_DCNo=@Pams_DCNo and isnull(mjcno,'')=isnull(@mjcno,'') and isnull(pjcno,'')=isnull(@pjcno,'')
 		end
 	end
@@ -350,8 +354,8 @@ begin
 		update DCNoGeneration_PAMS set Qty_KG=@Qty_KG, Qty_Numbers=@Qty_Numbers where Vendor=@Vendor and Pams_DCNo=@Pams_DCNo and MaterialID=@MaterialID 
 		and PartID=@partid and process=@Process and MJCNo=@MJCNo and isnull(pjcno,'')=isnull(@pjcno,'') 
 
-		insert into DCNoGeneration_PAMS(Vendor,GRNNo,MaterialID,PartID,Process,Qty_KG,Qty_Numbers,HSNCode,uom,bin,Value,Pams_DCNo,DCDate,UpdatedBy,UpdatedTS,Pams_DCID,DCStatus,DCType,MJCNo,PJCNo,PJCYear,Price)
-		select Vendor,GRNNo,MaterialID,@NewPartID,@NewProcess,@NewQty_KG,@NewQty_Numbers,HSNCode,uom,@Bin,@Value,Pams_DCNo,DCDate,@UpdatedBy,@UpdatedTS,Pams_DCID,DCStatus,@DCType,MJCNo,@NewPJCNo,@NewPJCYear,Price from DCNoGeneration_PAMS
+		insert into DCNoGeneration_PAMS(Vendor,GRNNo,MaterialID,PartID,Process,Qty_KG,Qty_Numbers,HSNCode,uom,bin,Value,Pams_DCNo,DCDate,UpdatedBy,UpdatedTS,Pams_DCID,DCStatus,DCType,MJCNo,PJCNo,PJCYear,Price,MaterialType)
+		select Vendor,GRNNo,MaterialID,@NewPartID,@NewProcess,@NewQty_KG,@NewQty_Numbers,HSNCode,uom,@Bin,@Value,Pams_DCNo,DCDate,@UpdatedBy,@UpdatedTS,Pams_DCID,DCStatus,@DCType,MJCNo,@NewPJCNo,@NewPJCYear,Price,MaterialType from DCNoGeneration_PAMS
 		where Vendor=@Vendor and Pams_DCNo=@Pams_DCNo and MaterialID=@MaterialID and PartID=@partid and process=@Process and isnull(pjcno,'')=isnull(@pjcno,'') and isnull(PJCYear,'')=isnull(@PJCYear,'')
 	end
 
@@ -362,12 +366,12 @@ begin
 		begin
 			if not exists(select * from DCNoGeneration_NewTemp_PAMS where vendor=@Vendor and GRNNo=@Grnno and MaterialID=@MaterialID and PartID=@partid and process=@Process AND UserID=@UserID and isnull(mjcno,'')=isnull(@mjcno,'') and isnull(pjcno,'')=isnull(@pjcno,''))
 			BEGIN
-				INSERT INTO DCNoGeneration_NewTemp_PAMS(Vendor,GRNNo,MaterialID,PartID,process,Qty_KG,Qty_Numbers,HSNCode,uom,bin,Value,UpdatedBy,UpdatedTS,dcstatus,JobCardType,DCType,MJCNo,PJCNo,Employee,MaterialRequestNo,RequestedBy,PJCYear,UserID)
-				VALUES(@Vendor,@Grnno,@MaterialID,@partid,@Process,@Qty_KG,@Qty_Numbers,@HSNCode,@uom,@bin,@Value,@UpdatedBy,@UpdatedTS,case when isnull(@DCStatus,'')='' then 'DCIssued' else @DCStatus end,@JobCardType,@DCType,@MJCNo,@PJCNo,@Employee,@MaterialRequestNo,@RequestedBy,@PJCYear,@UserID)
+				INSERT INTO DCNoGeneration_NewTemp_PAMS(Vendor,GRNNo,MaterialID,PartID,process,Qty_KG,Qty_Numbers,HSNCode,uom,bin,Value,UpdatedBy,UpdatedTS,dcstatus,JobCardType,DCType,MJCNo,PJCNo,Employee,MaterialRequestNo,RequestedBy,PJCYear,UserID,MaterialType)
+				VALUES(@Vendor,@Grnno,@MaterialID,@partid,@Process,@Qty_KG,@Qty_Numbers,@HSNCode,@uom,@bin,@Value,@UpdatedBy,@UpdatedTS,case when isnull(@DCStatus,'')='' then 'DCIssued' else @DCStatus end,@JobCardType,@DCType,@MJCNo,@PJCNo,@Employee,@MaterialRequestNo,@RequestedBy,@PJCYear,@UserID,@MaterialType)
 			end
 			else
 			begin
-				update DCNoGeneration_NewTemp_PAMS set Qty_KG=@Qty_KG,Qty_Numbers=@Qty_Numbers,UpdatedBy=@UpdatedBy,UpdatedTS=@UpdatedTS,bin=@Bin,Value=@Value,RequestedBy=@RequestedBy,MaterialRequestNo=@MaterialRequestNo
+				update DCNoGeneration_NewTemp_PAMS set Qty_KG=@Qty_KG,Qty_Numbers=@Qty_Numbers,UpdatedBy=@UpdatedBy,UpdatedTS=@UpdatedTS,bin=@Bin,Value=@Value,RequestedBy=@RequestedBy,MaterialRequestNo=@MaterialRequestNo,MaterialType=@MaterialType
 				where vendor=@Vendor and GRNNo=@Grnno and MaterialID=@MaterialID and PartID=@partid and process=@Process AND UserID=@UserID and isnull(mjcno,'')=isnull(@mjcno,'') and isnull(pjcno,'')=isnull(@pjcno,'')
 			end
 		end
@@ -381,22 +385,22 @@ begin
 		begin
 			select @strsql=''
 			select @strsql=@strsql+'insert into #Temp( Vendor,GRNNo,MaterialID,PartID,process,Qty_KG,Qty_Numbers,HSNCode,uom,bin,Value,
-			UpdatedBy,UpdatedTS,DCType,JobCardType,MJCNo,PJCNo,employee,MaterialRequestNo,RequestedBy,PJCYear) '
+			UpdatedBy,UpdatedTS,DCType,JobCardType,MJCNo,PJCNo,employee,MaterialRequestNo,RequestedBy,PJCYear,MaterialType) '
 			select @strsql=@strsql+'select distinct d1.Vendor,d1.GRNNo,d1.MaterialID,d1.PartID,d1.process,d1.Qty_KG,d1.Qty_Numbers,r1.HSNCode,d1.uom,d1.bin,d1.Value,
-			d1.UpdatedBy,d1.UpdatedTS,d1.DCType,d1.JobCardType,d1.MJCNo,d1.PJCNo,d1.employee,d1.MaterialRequestNo,d1.RequestedBy,d1.PJCYear from DCNoGeneration_NewTemp_PAMS d1  left join RawMaterialDetails_PAMS r1 on d1.MaterialID=r1.MaterialID where 1=1 and d1.userid='''+@UserID+''' '
+			d1.UpdatedBy,d1.UpdatedTS,d1.DCType,d1.JobCardType,d1.MJCNo,d1.PJCNo,d1.employee,d1.MaterialRequestNo,d1.RequestedBy,d1.PJCYear,d1.MaterialType from DCNoGeneration_NewTemp_PAMS d1  left join RawMaterialDetails_PAMS r1 on d1.MaterialID=r1.MaterialID where 1=1 and d1.userid='''+@UserID+''' '
 			select @strsql=@strsql+@StrVendor+@StrGrnNo+@StrMaterialID+@StrPartID+@StrProcess
 			print(@strsql)
 			exec(@strsql)
 
 			select  Vendor,GRNNo,MaterialID, PartID ,process,Qty_KG, Qty_Numbers,HSNCode,uom ,bin ,Value,Pams_DCNo,DCDate ,Pams_DCID ,UpdatedBy,UpdatedTS ,
-			DCType,JobCardType,MJCNo,PJCNo,employee,MaterialRequestNo,RequestedBy,PJCYear from #Temp	
+			DCType,JobCardType,MJCNo,PJCNo,employee,MaterialRequestNo,RequestedBy,PJCYear,MaterialType from #Temp	
 		end
 
 		if @param='DCDetailsPushToMain_NewTemp'
 		begin
 		
-			INSERT INTO DCNoGeneration_PAMS(Vendor,GRNNo,MaterialID,PartID,process,Qty_KG,Qty_Numbers,HSNCode,uom,bin,Value,UpdatedBy,UpdatedTS,Pams_DCNo,DCDate,Pams_DCID,dcstatus,JobCardType,DCType,MJCNo,PJCNo,Employee,MaterialRequestNo,RequestedBy,PJCYear)
-			select distinct @Vendor,GRNNo,MaterialID,PartID,process,Qty_KG,Qty_Numbers,HSNCode,uom,bin,Value,@UpdatedBy,@UpdatedTS,@Pams_DCNo,@DCDate,@Pams_DCID,@dcstatus,JobCardType,DCType,MJCNo,PJCNo,Employee,MaterialRequestNo,RequestedBy,PJCYear  from DCNoGeneration_NewTemp_PAMS
+			INSERT INTO DCNoGeneration_PAMS(Vendor,GRNNo,MaterialID,PartID,process,Qty_KG,Qty_Numbers,HSNCode,uom,bin,Value,UpdatedBy,UpdatedTS,Pams_DCNo,DCDate,Pams_DCID,dcstatus,JobCardType,DCType,MJCNo,PJCNo,Employee,MaterialRequestNo,RequestedBy,PJCYear,MaterialType)
+			select distinct @Vendor,GRNNo,MaterialID,PartID,process,Qty_KG,Qty_Numbers,HSNCode,uom,bin,Value,@UpdatedBy,@UpdatedTS,@Pams_DCNo,@DCDate,@Pams_DCID,@dcstatus,JobCardType,DCType,MJCNo,PJCNo,Employee,MaterialRequestNo,RequestedBy,PJCYear,MaterialType  from DCNoGeneration_NewTemp_PAMS
 			where Autoid in (select item from SplitString(@autoid,','))
 
 			DELETE FROM DCNoGeneration_NewTemp_PAMS WHERE Autoid in (select item from SplitString(@autoid,','))
@@ -409,5 +413,24 @@ begin
 		end
 
 	---------------------------------------------------------------------Adding into new temp table before generating pams_dcno logic ends------------------------------------------------------------------------------------------
+		
+		if @Param='SubtractWithoutOperationQty'
+		begin
 
+			if isnull(@WithoutOperationQty_UOM,'')='Kg'
+			begin
+				update DCNoGeneration_PAMS set WithoutOperationQty_UOM=@WithoutOperationQty_UOM, WithoutOperationQty_KG=@WithoutOperationQty_KG,WithoutOperationQty_Numbers=@WithoutOperationQty_Numbers,
+				Qty_KG=isnull(Qty_KG,0) -isnull(@WithoutOperationQty_KG,0),
+				Qty_Numbers=isnull(Qty_Numbers,0)-isnull(@WithoutOperationQty_Numbers,0)
+				where vendor=@Vendor and GRNNo=@Grnno and MaterialID=@MaterialID and PartID=@partid and Pams_DCNo=@Pams_DCNo
+			end
+			if isnull(@WithoutOperationQty_UOM,'')='NO.'
+			begin
+				update DCNoGeneration_PAMS set WithoutOperationQty_UOM=@WithoutOperationQty_UOM, WithoutOperationQty_Numbers=@WithoutOperationQty_Numbers,
+				Qty_Numbers=isnull(Qty_Numbers,0)-isnull(@WithoutOperationQty_Numbers,0)
+				where vendor=@Vendor and GRNNo=@Grnno and MaterialID=@MaterialID and PartID=@partid and Pams_DCNo=@Pams_DCNo
+			end
+		end
+			
+			
 end

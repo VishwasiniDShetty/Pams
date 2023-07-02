@@ -25,5 +25,8 @@ CREATE TABLE [dbo].[PJCProductionEditedDetails_PAMS](
 	[LineInchargeStatus] [nvarchar](50) NULL,
 	[Process] [nvarchar](50) NULL,
 	[Machineid] [nvarchar](50) NULL,
-	[DummyCycle] [float] NULL
+	[DummyCycle] [float] NULL,
+	[DataType] [nvarchar](50) NULL
 ) ON [PRIMARY]
+
+ALTER TABLE [dbo].[PJCProductionEditedDetails_PAMS] ADD  DEFAULT ('Auto') FOR [DataType]

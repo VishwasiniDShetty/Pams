@@ -12,7 +12,7 @@ CREATE TABLE [dbo].[CalibrationHistoryDetails_IDM_Pams](
 	[InstrumentNo] [nvarchar](50) NULL,
 	[CertificateNo] [nvarchar](100) NULL,
 	[PartName] [nvarchar](50) NULL,
-	[ObservedReadings] [float] NULL,
+	[ObservedReadings] [nvarchar](50) NULL,
 	[Error] [nvarchar](100) NULL,
 	[DateOfCalibration] [date] NULL,
 	[Next_CalibrationDueOn] [date] NULL,

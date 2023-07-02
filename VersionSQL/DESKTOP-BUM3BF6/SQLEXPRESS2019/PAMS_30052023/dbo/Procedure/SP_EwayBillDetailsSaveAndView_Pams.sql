@@ -62,9 +62,10 @@ begin
 	if @Param='AccountsView'
 	begin
 		select e1.*, d1.Vendor,v1.GSTNumber from EWayBillDetails_Pams e1
-		inner join (select distinct Pams_DCNo,vendor from DCNoGeneration_PAMS) d1 on e1.Pams_DCNo=d1.Pams_DCNo
+		inner join (select distinct Pams_DCID,Pams_DCNo,vendor from DCNoGeneration_PAMS) d1 on e1.Pams_DCNo=d1.Pams_DCNo
 		left join VendorDetails_PAMS v1 on d1.Vendor=v1.VendorID where-- pams_dcno=@Pams_DCNo and  
 		(convert(nvarchar(10),updatedts,126)>=@FromDate and  convert(nvarchar(10),updatedts,126)<=@ToDate) and dcstatus='DC No. generated and confirmed' and d1.Vendor<>'PAMS Internal'
+		order by Pams_DCID desc
 	end
 
 

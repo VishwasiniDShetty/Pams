@@ -32,7 +32,10 @@ CREATE TABLE [dbo].[DCNoGeneration_PAMS](
 	[RequestedBy] [nvarchar](50) NULL,
 	[Price] [nvarchar](50) NULL,
 	[DCCloseStatus] [nvarchar](50) NULL,
-	[DCCloseRemarks] [nvarchar](max) NULL
+	[DCCloseRemarks] [nvarchar](max) NULL,
+	[WithoutOperationQty_KG] [float] NULL,
+	[WithoutOperationQty_Numbers] [float] NULL,
+	[WithoutOperationQty_UOM] [nvarchar](50) NULL
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 
 SET ANSI_PADDING ON

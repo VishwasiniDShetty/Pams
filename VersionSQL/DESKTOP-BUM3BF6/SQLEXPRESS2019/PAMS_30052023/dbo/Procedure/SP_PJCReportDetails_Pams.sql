@@ -156,7 +156,7 @@ begin
 
 	select MJCNo,PJCNo,PJCYear,PartID ,Process ,ProcessType ,Sequence,Date,isnull(Shift,'') as Shift ,isnull(DCIssued_ProdQty,0) as DCIssued_ProdQty ,isnull(RejQty,0) as  RejQty,isnull(ReworkQty,0) as  ReworkQty,
 	isnull(AcceptedQty,0) as AcceptedQty ,isnull(QualityPerson,'') as  QualityPerson,isnull(Stores_LineInchargeName,'') as  Stores_LineInchargeName,QualityTs ,
-	Stores_LineInchargeTS,dcPJCBit from #FinalResult where ISNULL(process,'')<>'FG' and isnull(dcPJCBit,0)<>'WithoutPJC' order by Sequence asc
+	Stores_LineInchargeTS,dcPJCBit from #FinalResult where ISNULL(process,'')<>'FG' and isnull(process,'')<>'Rework And Return' and isnull(dcPJCBit,0)<>'WithoutPJC' order by Sequence asc
 end
 
 	insert into #FinalInspection(MJCNo,PJCNo,PJCYear,PartID,ProductionDate,QualityDate,QtyOfferedForInspection,AcceptedQty,UpdatedBy_Quality,BatchBit)

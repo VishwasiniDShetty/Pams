@@ -158,7 +158,10 @@ BEGIN
 	DCStores_Status nvarchar(50),
 	MaterialUOM nvarchar(50),
 	GateID INT,
-	DCGateEntryNumber nvarchar(50)
+	DCGateEntryNumber nvarchar(50),
+	WithoutOperationQty_KG float,
+	WithoutOperationQty_Numbers float,
+	WithoutOperationQty_UOM nvarchar(50)
 	)
 
 		create table #TempStores
@@ -439,16 +442,17 @@ BEGIN
 		print(@strsql)
 		exec(@strsql)
 
-		update #ViewTemp set OrderedQty_kg=isnull(t1.ordqty,0),OrderedQty_Numbers=isnull(t1.OrderQtyInNumbers,0)
+		update #ViewTemp set OrderedQty_kg=isnull(t1.ordqty,0),OrderedQty_Numbers=isnull(t1.OrderQtyInNumbers,0),WithoutOperationQty_KG=isnull(t1.WithoutOperationQty_KG,0),WithoutOperationQty_Numbers=isnull(t1.WithoutOperationQty_Numbers,0)
 		from
-		(select distinct Vendor,GRNNo,MJCNo,Pams_DCNo,MaterialID,PartID,sum(Qty_KG) as ordqty,sum(Qty_Numbers) AS OrderQtyInNumbers from DCNoGeneration_PAMS where DCStatus not in ('Discarded')
+		(select distinct Vendor,GRNNo,MJCNo,Pams_DCNo,MaterialID,PartID,sum(Qty_KG) as ordqty,sum(Qty_Numbers) AS OrderQtyInNumbers,
+		sum(WithoutOperationQty_KG) as WithoutOperationQty_KG,sum(WithoutOperationQty_Numbers) as WithoutOperationQty_Numbers from DCNoGeneration_PAMS where DCStatus not in ('Discarded')
 		group by Vendor,GRNNo,MJCNo,Pams_DCNo,MaterialID,PartID
 		)t1 inner join #ViewTemp t2 on t1.Vendor=t2.Vendor and t1.Pams_DCNo=t2.PAMS_DCNo and t1.MaterialID=t2.MaterialID and t1.PartID=t2.PartID and t1.GRNNo=t2.GRNNo and t1.MJCNo=t2.MJCNo
 
-		update #ViewTemp set OrderedQty_UOM=isnull(t1.OrderedQty_UOM,0)
+		update #ViewTemp set OrderedQty_UOM=isnull(t1.OrderedQty_UOM,0),WithoutOperationQty_UOM=isnull(t1.WithoutOperationQty_UOM,'')
 		from
 		(
-		select distinct  Vendor,GRNNo,MJCNo,Pams_DCNo,MaterialID,PartID,uom as OrderedQty_UOM from DCNoGeneration_PAMS
+		select distinct  Vendor,GRNNo,MJCNo,Pams_DCNo,MaterialID,PartID,uom as OrderedQty_UOM,WithoutOperationQty_UOM  from DCNoGeneration_PAMS
 		) t1 inner join #ViewTemp t2 on t1.Vendor=t2.Vendor and t1.GRNNo=t2.GRNNo and t1.MJCNo=t2.MJCNo and t1.Pams_DCNo=t2.PAMS_DCNo and t1.MaterialID=t2.MaterialID and t1.PartID=t2.PartID
 
 		select * from #ViewTemp order by GateID desc
@@ -747,6 +751,34 @@ BEGIN
 			Vendor=@Vendor and Pams_DcNo=@Pamsdcno and  VendorDCNo=@OldVendorDCNo
 		end
 
+
+		if @Param='ForceDCClose'
+		begin
+
+			declare @DCOrderedQty_KG float
+			declare @DCOrderedQty_Numbers float
+			declare @DCReceivedQty_KG float
+			declare @DCReceivedQty_Numbers float
+
+			select @DCOrderedQty_KG=''
+			select @DCOrderedQty_Numbers=''
+			select @DCReceivedQty_KG=''
+			select @DCReceivedQty_Numbers=''
+
+			select @DCOrderedQty_KG=(select sum(cast(Qty_KG as int)) from DCNoGeneration_PAMS where Pams_DCNo=@Pamsdcno)
+			select @DCOrderedQty_Numbers=(select sum(cast(Qty_Numbers as int)) from DCNoGeneration_PAMS where Pams_DCNo=@Pamsdcno)
+			select @DCReceivedQty_KG=(select sum(cast(Qty_KG as int)) from DCStoresDetails_PAMS where PamsDCNo=@Pamsdcno)
+			select @DCReceivedQty_Numbers=(select sum(cast(PJCQty as int)) from DCStoresDetails_PAMS where PamsDCNo=@Pamsdcno)
+
+			if (isnull(@DCReceivedQty_Numbers,0)>=isnull(@DCOrderedQty_Numbers,0))
+			begin
+				update DCNoGeneration_PAMS set DCCloseStatus='Closed' where Pams_DCNo=@Pamsdcno
+			end
+			else
+			begin
+				return
+			end
+		end
 
 		--if @Param='UpdateStoresStatus'
 	--begin
